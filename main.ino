@@ -11,8 +11,10 @@ que o botão seja pressionado novamente.
 
 // Libraries
 #include <Servo.h>
+#include <LiquidCrystal.h>
 #include "ACS712.h"
 #include "sampling.h"
+#include "display.h"
 
 // Configuration
 #define BAUD 9600				// Baud rate
@@ -25,13 +27,19 @@ que o botão seja pressionado novamente.
 // Pinouts
 #define POTPIN 0				// Analog input pin for potentiometer
 #define AMPPIN 2				// Analog input pin for current sensor
-#define HOLDPIN 4				// Digital input pin for HOLD button
+#define HOLDPIN 7				// Digital input pin for HOLD button
 #define SERVOPIN 9			// Digital output pin for servo PWM
 
-Servo servo;						// Create Servo object to control the servo.
+// LCD Pinout (RS, EN, D4, D5, D6, D7)
+#define LCDPINS 12, 11, 5, 4, 3, 2
 
-ACS712 ACS(AMPPIN, 5.0, 1023, 185);	// Setting up the ACS712 module (current sensor)
+// Create Servo object to control the servo.
+Servo servo;						
+
+// Setting up the ACS712 current sensor
 // (Analog pin, Voltage, ADC resolution, mV/A)
+ACS712 ACS(AMPPIN, 5.0, 1023, 185);	
+
 
 // Global variables
 bool hold = 0;					// HOLD flag (false = running; true = holding)
@@ -44,48 +52,75 @@ float mamp;							// Current reading in miliamps
 float avg;							// Current average
 int64_t total = 0;			// Sum of all samples
 
+LiquidCrystal lcd(LCDPINS);
 
 void setup() {
-	Serial.begin(BAUD);				// Initialize serial monitor
-	//Serial.println("Initializing...");
+	// Initialize serial monitor
+	Serial.begin(BAUD);
+	Serial.println("Initializing...");
+
+	// Initialize display (columns, rows)
+	lcd.begin(16, 2);
+	lcd.print("Initializing...");
 
 	//Set HOLD button to input
 	pinMode(HOLDPIN, INPUT);
+	
+	// Print debug messages on display and serial monitor
+	Serial.println("Calibrating...");
+	lcd.setCursor(0,0); 			// Return cursor
+	lcd.print("Calibrating...");
 
 	// Move servo to center position and detach it to calibrate current sensor
-	//Serial.println("Calibrating");
 	servo.attach(SERVOPIN);		// Attach servo to output pin
 	servo.write(SERVOCTR);		// Move servo to center
 	delay(1000);							// Wait for servo to get in position
 	servo.detach();						// Detach servo to cut power
 
 	ACS.autoMidPoint();				// Run auto calibration
-	delay(100);
-	//Serial.print("Midpoint set to ");
-	//Serial.println(ACS.getMidPoint());
+	delay(1000);
+
+	// Get midpoint
+	uint16_t midpoint = ACS.getMidPoint();
 
 	servo.attach(SERVOPIN);		// Attach servo to output pin
-	//Serial.println("Calibration complete.");
+
+	// Print debug message on display
+	lcd.setCursor(0,0);				// Return cursor
+	lcd.print("Complete");
+	lcd.setCursor(0,1);				// Set cursor to next line
+	lcd.print("Midpoint: ");
+	lcd.print(midpoint);
+
+	// Print debug messages to serial monitor
+	Serial.print("Midpoint set to ");
+	Serial.println(midpoint);
+	delay(1000);
+
+	// Clear display
+	lcd.clear();
+
+	Serial.println("Calibration complete.");
 }
 
 void loop() {
 	// Variables
 	int holdbtn;						// HOLD button reading
 	uint16_t potval;				// Potentiometer reading
-  
+
 	// Reading HOLD button
 	holdbtn = digitalRead(HOLDPIN);
 
+	// Debouncing and toggling HOLD state
 	if (holdbtn != lasthldbtn) {
     // reset the debouncing timer
     lasthldt = millis();
   }
-
 	if ((millis() - lasthldt) > DEBOUNCE) {
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
+    // whatever the reading is at, it's been there for longer than the
+    // debounce delay, so take it as the actual current state
 
-    // if the button state has changed:
+    // if the button state has changed
     if (holdbtn != hldstate) {
       hldstate = holdbtn;
 
@@ -94,14 +129,16 @@ void loop() {
 			}
     }
   }
-	
-	// Save button reading
+	// Save button reading for the next loop
 	lasthldbtn = holdbtn;
 
 	// If HOLD is off, take readings in real time with fewer samples
 	if(!hold){
 		// Get reading from sensor
 		avg = getma(ACS, DSAMPLES);
+
+		// Print reading to display
+		printReading(lcd, avg, hold);
 
 		// Reset reading done flag 
 		mampflag = false;
@@ -112,6 +149,9 @@ void loop() {
 		if(!mampflag){
 			// Get reading from sensor
 			avg = getma(ACS, SAMPLES);
+
+			// Print reading to display
+			printReading(lcd, avg, hold);
 
 			// Set reading done flag 
 			mampflag = true;
