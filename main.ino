@@ -12,6 +12,7 @@ que o botão seja pressionado novamente.
 // Libraries
 #include <Servo.h>
 #include "ACS712.h"
+#include "sampling.h"
 
 // Configuration
 #define BAUD 9600				// Baud rate
@@ -29,7 +30,7 @@ que o botão seja pressionado novamente.
 
 Servo servo;						// Create Servo object to control the servo.
 
-ACS712  ACS(AMPPIN, 5.0, 1023, 185);	// Setting up the ACS712 module (current sensor)
+ACS712 ACS(AMPPIN, 5.0, 1023, 185);	// Setting up the ACS712 module (current sensor)
 // (Analog pin, Voltage, ADC resolution, mV/A)
 
 // Global variables
@@ -97,49 +98,28 @@ void loop() {
 	// Save button reading
 	lasthldbtn = holdbtn;
 
-
-	// If HOLD is disabled, take readings in real time with fewer samples
+	// If HOLD is off, take readings in real time with fewer samples
 	if(!hold){
-		// Reset total and avg variables for next reading
-		avg = 0;
-		total = 0;
+		// Get reading from sensor
+		avg = getma(ACS, DSAMPLES);
 
-		// Reset reading done flag
+		// Reset reading done flag 
 		mampflag = false;
-
-		// Capturing all samples
-		for(int i = 0; i < DSAMPLES; i++){
-			mamp = ACS.mA_DC();		// Get data from sensor (in miliamps)
-			total += mamp;				// Add current reading to total
-		}
-
-		// Divides sum of all readings by the number of samples (average)
-		avg = total / DSAMPLES;	
 	}
 
-	// If HOLD is enabled, show average with more samples and don't update it
+	// If HOLD is on, take one reading with more samples
 	else{
-		// Check if the average was already taken
 		if(!mampflag){
-			// Reset total and avg variables for next reading
-			avg = 0;
-			total = 0;
+			// Get reading from sensor
+			avg = getma(ACS, SAMPLES);
 
-			// Capturing all samples
-			for(int i = 0; i < SAMPLES; i++){
-				mamp = ACS.mA_DC();		// Get data from sensor (in miliamps)
-				total += mamp;				// Add current reading to total
-			}
-
-			// Divides sum of all readings by the number of samples (average)
-			avg = total / SAMPLES;
-
-			mampflag = true;	// Indicate that the reading is done
+			// Set reading done flag 
+			mampflag = true;
 		}
 
 		delay(DELAY);
 	}
-
+	
 	// Rotate servo according to potentiometer position
 	potval = analogRead(POTPIN);						// Read the potentiometer
 	potval = map(potval, 0, 1023, 0, 180);	// Map pot between 0 to 180 degrees to use with the servo
