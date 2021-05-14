@@ -1,10 +1,13 @@
-// Sampling and averaging functions
+// This file contains functions related to reading, sampling and averaging
+// the data coming from the ACS712 current sensor
 
+// Libraries
 #include <stdint.h>
 #include "sampling.h"
 #include "ACS712.h"
 
-// If HOLD is disabled, take readings in real time with fewer samples
+// Captures samples from the ACS712 and averages them
+// Pass the ACS712 object and how many samples to take as parameters
 int16_t getma(ACS712 acs, uint16_t samples){
 	// Reset total and avg variables for next reading
 	int16_t avg = 0;
