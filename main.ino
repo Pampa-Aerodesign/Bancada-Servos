@@ -39,8 +39,6 @@ float mamp;							// Current reading in miliamps
 float avg;							// Current average
 int64_t total = 0;			// Sum of all samples
 
-float volt;							// Servo voltage reading
-
 
 void setup() {
 	// Initialize serial monitor
@@ -65,8 +63,10 @@ void setup() {
 
 void loop() {
 	// Variables
-	bool holdbtn;						// HOLD button reading
-	uint16_t potval;				// Potentiometer reading
+	bool holdbtn;				// HOLD button reading
+	uint16_t potval;		// Potentiometer reading
+	uint16_t vin;						// Servo voltage divider input
+	float volt;					// Servo voltage
 
 	// Reading HOLD button
 	holdbtn = !digitalRead(HOLDPIN);
@@ -109,7 +109,7 @@ void loop() {
 		if(!mampflag){
 			// Print tare message on display
 			lcd.setCursor(0,0);
-			lcd.print("Reading...     ");
+			lcd.print("Reading... ");
 			Serial.println("Reading...");
 
 			// Get reading from sensor
@@ -124,6 +124,13 @@ void loop() {
 
 		delay(DELAY);
 	}
+
+	// Read, calculate and print servo voltage
+	vin = analogRead(VOLTPIN);
+	volt = (vin/1023) * 5 * (32/12);
+	lcd.setCursor(11,0);
+	lcd.print(volt);
+	lcd.print("V");
 	
 	// Rotate servo according to potentiometer position
 	potval = analogRead(POTPIN);						// Read the potentiometer
