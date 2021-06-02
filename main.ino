@@ -52,7 +52,7 @@ void setup() {
 	lcd.print("Initializing   ");
 
 	//Set HOLD button to input
-	pinMode(HOLDPIN, INPUT);
+	pinMode(HOLDPIN, INPUT_PULLUP);
 	
 	// Run ACS calibration
 	calibACS(ACS, lcd, servo);
@@ -69,7 +69,7 @@ void loop() {
 	uint16_t potval;				// Potentiometer reading
 
 	// Reading HOLD button
-	holdbtn = digitalRead(HOLDPIN);
+	holdbtn = !digitalRead(HOLDPIN);
 
 	// Debouncing and toggling HOLD state
 	if (holdbtn != lasthldbtn) {
