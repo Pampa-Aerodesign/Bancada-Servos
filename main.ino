@@ -14,8 +14,8 @@ que o botão seja pressionado novamente.
 #include <Servo.h>
 #include <LiquidCrystal.h>
 #include "ACS712.h"
-#include "sampling.h"
-#include "display.h"
+#include "sampling.hpp"
+#include "display.hpp"
 #include "calibration.hpp"
 
 // Create Servo object to control the servo.

@@ -1,7 +1,7 @@
 // This file contains functions related
 // to the LCD (16x2)
 
-#include "display.h"
+#include "display.hpp"
 #include <string.h>
 #include <LiquidCrystal.h>
 
