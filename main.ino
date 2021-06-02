@@ -107,6 +107,11 @@ void loop() {
 	// If HOLD is on, take one reading with more samples
 	else{
 		if(!mampflag){
+			// Print tare message on display
+			lcd.setCursor(0,0);
+			lcd.print("Reading...     ");
+			Serial.println("Reading...");
+
 			// Get reading from sensor
 			avg = getma(ACS, SAMPLES);
 

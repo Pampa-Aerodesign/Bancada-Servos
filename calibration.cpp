@@ -31,7 +31,7 @@ void calibACS(ACS712 ACS, LiquidCrystal lcd, Servo servo){
 	lcd.setCursor(0,0);				// Return cursor
 	lcd.print("Complete       ");
 	lcd.setCursor(0,1);				// Set cursor to next line
-	lcd.print("Midpoint:      ");
+	lcd.print("Midpoint: ");
 	lcd.print(midpoint);
 
 	// Print debug messages to serial monitor
