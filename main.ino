@@ -10,28 +10,13 @@ que o botão seja pressionado novamente.
 */
 
 // Libraries
+#include "config.hpp"
 #include <Servo.h>
 #include <LiquidCrystal.h>
 #include "ACS712.h"
 #include "sampling.h"
 #include "display.h"
-
-// Configuration
-#define BAUD 9600				// Baud rate
-#define DSAMPLES 200		// Number of samples to capture for calculating "real time" average
-#define SAMPLES 5000		// Number of samples to capture for calculating average on button press
-#define DELAY	100				// Small delay to slow things down
-#define SERVOCTR 90			// Servo center position
-#define DEBOUNCE 50			// Debounce delay
-
-// Pinouts
-#define POTPIN 0				// Analog input pin for potentiometer
-#define AMPPIN 2				// Analog input pin for current sensor
-#define HOLDPIN 7				// Digital input pin for HOLD button
-#define SERVOPIN 9			// Digital output pin for servo PWM
-
-// LCD Pinout (RS, EN, D4, D5, D6, D7)
-#define LCDPINS 12, 11, 5, 4, 3, 2
+#include "calibration.hpp"
 
 // Create Servo object to control the servo.
 Servo servo;						
@@ -40,6 +25,8 @@ Servo servo;
 // (Analog pin, Voltage, ADC resolution, mV/A)
 ACS712 ACS(AMPPIN, 5.0, 1023, 185);	
 
+// LCD Display
+LiquidCrystal lcd(LCDPINS);
 
 // Global variables
 bool hold = 0;					// HOLD flag (false = running; true = holding)
@@ -52,7 +39,8 @@ float mamp;							// Current reading in miliamps
 float avg;							// Current average
 int64_t total = 0;			// Sum of all samples
 
-LiquidCrystal lcd(LCDPINS);
+float volt;							// Servo voltage reading
+
 
 void setup() {
 	// Initialize serial monitor
@@ -61,51 +49,23 @@ void setup() {
 
 	// Initialize display (columns, rows)
 	lcd.begin(16, 2);
-	lcd.print("Initializing...");
+	lcd.print("Initializing   ");
 
 	//Set HOLD button to input
 	pinMode(HOLDPIN, INPUT);
 	
-	// Print debug messages on display and serial monitor
-	Serial.println("Calibrating...");
-	lcd.setCursor(0,0); 			// Return cursor
-	lcd.print("Calibrating...");
-
-	// Move servo to center position and detach it to calibrate current sensor
-	servo.attach(SERVOPIN);		// Attach servo to output pin
-	servo.write(SERVOCTR);		// Move servo to center
-	delay(1000);							// Wait for servo to get in position
-	servo.detach();						// Detach servo to cut power
-
-	ACS.autoMidPoint();				// Run auto calibration
-	delay(1000);
-
-	// Get midpoint
-	uint16_t midpoint = ACS.getMidPoint();
-
-	servo.attach(SERVOPIN);		// Attach servo to output pin
-
-	// Print debug message on display
-	lcd.setCursor(0,0);				// Return cursor
-	lcd.print("Complete");
-	lcd.setCursor(0,1);				// Set cursor to next line
-	lcd.print("Midpoint: ");
-	lcd.print(midpoint);
-
-	// Print debug messages to serial monitor
-	Serial.print("Midpoint set to ");
-	Serial.println(midpoint);
-	delay(1000);
+	// Run ACS calibration
+	calibACS(ACS, lcd, servo);
 
 	// Clear display
 	lcd.clear();
 
-	Serial.println("Calibration complete.");
+	Serial.println("Initialization complete.");
 }
 
 void loop() {
 	// Variables
-	int holdbtn;						// HOLD button reading
+	bool holdbtn;						// HOLD button reading
 	uint16_t potval;				// Potentiometer reading
 
 	// Reading HOLD button
