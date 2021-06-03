@@ -65,8 +65,15 @@ void loop() {
 	// Variables
 	bool holdbtn;				// HOLD button reading
 	uint16_t potval;		// Potentiometer reading
-	uint16_t vin;						// Servo voltage divider input
+	float vin;						// Servo voltage divider input
 	float volt;					// Servo voltage
+
+	// Read, calculate and print servo voltage
+	vin = analogRead(VOLTPIN);
+	volt = (vin/1023) * 5 / (32/12);
+	lcd.setCursor(11,0);
+	lcd.print(volt, 2);
+	lcd.print("V");
 
 	// Reading HOLD button
 	holdbtn = !digitalRead(HOLDPIN);
@@ -124,13 +131,6 @@ void loop() {
 
 		delay(DELAY);
 	}
-
-	// Read, calculate and print servo voltage
-	vin = analogRead(VOLTPIN);
-	volt = (vin/1023) * 5 * (32/12);
-	lcd.setCursor(11,0);
-	lcd.print(volt);
-	lcd.print("V");
 	
 	// Rotate servo according to potentiometer position
 	potval = analogRead(POTPIN);						// Read the potentiometer
@@ -141,6 +141,10 @@ void loop() {
 	Serial.print(avg);
 	Serial.print('\t');
 	Serial.print(hold);
+	Serial.print('\t');
+	Serial.print(vin);
+	Serial.print('\t');
+	Serial.print(volt, 2);
 	Serial.print('\t');
 	Serial.println(potval);
 
