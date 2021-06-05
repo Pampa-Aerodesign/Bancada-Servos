@@ -50,7 +50,7 @@ void setup() {
 	lcd.print("Initializing   ");
 
 	//Set HOLD button to input
-	pinMode(HOLDPIN, INPUT_PULLUP);
+	pinMode(HOLDPIN, INPUT);
 	
 	// Run ACS calibration
 	calibACS(ACS, lcd, servo);
