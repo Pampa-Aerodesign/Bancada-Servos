@@ -70,13 +70,13 @@ void loop() {
 
 	// Read, calculate and print servo voltage
 	vin = analogRead(VOLTPIN);
-	volt = (vin/1023) * 5 / (32/12);
+	volt = (vin/1023) * 5 * (32.0/12.0); // divisions in C need to be done with floats (and not integers) for result to be a float
 	lcd.setCursor(11,0);
 	lcd.print(volt, 2);
 	lcd.print("V");
-
+  
 	// Reading HOLD button
-	holdbtn = !digitalRead(HOLDPIN);
+	holdbtn = digitalRead(HOLDPIN);
 
 	// Debouncing and toggling HOLD state
 	if (holdbtn != lasthldbtn) {
