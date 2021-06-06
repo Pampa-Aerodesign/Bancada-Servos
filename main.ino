@@ -19,7 +19,7 @@ que o botão seja pressionado novamente.
 #include "calibration.hpp"
 
 // Create Servo object to control the servo.
-Servo servo;						
+Servo servo;
 
 // Setting up the ACS712 current sensor
 // (Analog pin, Voltage, ADC resolution, mV/A)
@@ -33,11 +33,12 @@ bool hold = 0;					// HOLD flag (false = running; true = holding)
 bool hldstate = 0;			// HOLD state
 bool lasthldbtn = 0;		// Previous reading from HOLD button
 uint64_t lasthldt = 0;	// Last time the HOLD flag was toggled
+bool manual_calib_flag = 0; // Flag indicating if the button has been manually calibrated recently
 
 bool mampflag = 0;			// Flag when current sensor reading is done
-float mamp;							// Current reading in miliamps
 float avg;							// Current average
 int64_t total = 0;			// Sum of all samples
+float manual_calib = 0;
 
 
 void setup() {
@@ -91,18 +92,34 @@ void loop() {
     if (holdbtn != hldstate) {
       hldstate = holdbtn;
 
-			if(hldstate == HIGH){
-				hold = !hold;
+      /*if(hldstate == HIGH) {
+        // when the button starts being pressed
+      }
+			else*/ if(hldstate == LOW){
+        // when the button stops being pressed
+				if(manual_calib_flag == 0) {
+          hold = !hold;
+				}
+        else manual_calib_flag = 0;
 			}
     }
   }
+  if(hldstate == HIGH) {
+    // when the button is being pressed
+    if (millis() - lasthldt > MANUAL_CALIB_DELAY*1000 && manual_calib_flag == 0) {
+      manual_calib = manualCalibration(ACS, lcd);
+      manual_calib_flag = 1;
+    }
+  }
+
+  
 	// Save button reading for the next loop
 	lasthldbtn = holdbtn;
 
 	// If HOLD is off, take readings in real time with fewer samples
 	if(!hold){
 		// Get reading from sensor
-		avg = getma(ACS, DSAMPLES);
+		avg = getma(ACS, DSAMPLES) - manual_calib;
 
 		// Print reading to display
 		printReading(lcd, avg, hold);
@@ -120,7 +137,7 @@ void loop() {
 			Serial.println("Reading...");
 
 			// Get reading from sensor
-			avg = getma(ACS, SAMPLES);
+			avg = getma(ACS, SAMPLES) - manual_calib;
 
 			// Print reading to display
 			printReading(lcd, avg, hold);

@@ -1,6 +1,7 @@
 // This file contains functions related to calibration of sensors
 
 #include "calibration.hpp"
+#include "sampling.hpp"
 #include "config.hpp"
 #include <LiquidCrystal.h>
 #include <ACS712.h>
@@ -28,7 +29,7 @@ void calibACS(ACS712 ACS, LiquidCrystal lcd, Servo servo){
 	servo.attach(SERVOPIN);		// Attach servo to output pin
 
 	// Print debug message on display
-	lcd.setCursor(0,0);				// Return cursor
+	lcd.setCursor(0,0);				// Return cursor 
 	lcd.print("Complete       ");
 	lcd.setCursor(0,1);				// Set cursor to next line
 	lcd.print("Midpoint: ");
@@ -38,4 +39,19 @@ void calibACS(ACS712 ACS, LiquidCrystal lcd, Servo servo){
 	Serial.print("Midpoint set to ");
 	Serial.println(midpoint);
 	delay(1000);
+}
+
+float manualCalibration(ACS712 ACS, LiquidCrystal lcd) {
+  lcd.setCursor(0,0);
+  lcd.print("Manual          ");
+  lcd.setCursor(0,1);
+  lcd.print("calibration...  ");
+  delay(1000);
+  float manual_calib = getma(ACS, SAMPLES);
+  lcd.clear();
+  lcd.print("Value: ");
+  lcd.print(manual_calib);
+  lcd.print("mA");
+  delay(2000);
+  return manual_calib;
 }

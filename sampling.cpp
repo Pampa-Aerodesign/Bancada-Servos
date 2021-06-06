@@ -21,5 +21,10 @@ int16_t getma(ACS712 acs, uint16_t samples){
 	}
 
 	// Divides sum of all readings by the number of samples (average)
-	return avg = total / samples;
+  // and returns the absolute value
+  avg = total / samples;
+  if(avg >= 0) {
+    return avg;
+  }
+  else return -avg;
 }
