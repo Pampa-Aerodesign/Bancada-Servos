@@ -11,5 +11,7 @@
 
 // Calibrating ACS712 module
 void calibACS(ACS712, LiquidCrystal, Servo);
+// Manual calibration by current value
+float manualCalibration(ACS712 ACS, LiquidCrystal lcd);
 
 #endif
