@@ -1,17 +1,14 @@
-// This is the header file for calibration.cpp
+#ifndef _CALIBRATION_H_
+#define _CALIBRATION_H_
 
-#ifndef _CALIBRATION_
-#define _CALIBRATION_
+#include "Arduino.h"
+#include "Servo.h"
+#include "stdint.h"
+#include "Adafruit_INA219.h"
 
-#include "config.hpp"
-#include "calibration.hpp"
-#include <LiquidCrystal.h>
-#include <ACS712.h>
-#include <Servo.h>
+#include "sampling.hpp"
 
-// Calibrating ACS712 module
-void calibACS(ACS712, LiquidCrystal, Servo);
-// Manual calibration by current value
-float manualCalibration(ACS712 ACS, LiquidCrystal lcd);
+void calibrationStart(Servo *pServo, uint16_t servoCenter, Adafruit_INA219 *pIna219);
+void calibrationEnd(Servo *pServo, uint8_t servoPin, Adafruit_INA219 *pIna219);
 
 #endif

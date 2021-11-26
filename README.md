@@ -1,3 +1,3 @@
-# Bancada Torque x Corrente
+# Editei o main sem querer
 
-Código da bancada de medição da relação Torque x Corrente de servomotores.
+Foi mal aí.
